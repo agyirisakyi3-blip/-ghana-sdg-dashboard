@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghana SDG Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+    --bg: #060912;
+    --bg-elevated: #0c1120;
+    --bg-card: #111827;
+    --bg-card-hover: #1a2332;
+    --border: #1e293b;
+    --border-hover: #334155;
+    --text: #f8fafc;
+    --text-dim: #94a3b8;
+    --text-muted: #475569;
+    --blue: #3b82f6;
+    --blue-glow: rgba(59,130,246,0.15);
+    --green: #10b981;
+    --green-glow: rgba(16,185,129,0.15);
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --purple: #8b5cf6;
+    --pink: #ec4899;
+    --cyan: #06b6d4;
+    --radius: 14px;
+    --radius-sm: 10px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 10% 20%, rgba(59,130,246,0.06), transparent),
+        radial-gradient(ellipse 60% 50% at 90% 80%, rgba(139,92,246,0.05), transparent);
+    pointer-events: none;
+    z-index: 0;
+}
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+.app { position: relative; z-index: 1; max-width: 1520px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
+
+/* ========== TOP BAR ========== */
+.topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 0 2rem; flex-wrap: wrap; gap: 1rem;
+}
+.brand { display: flex; align-items: center; gap: 1rem; }
+.brand-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    display: grid; place-items: center; font-size: 1.4rem;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+}
+.brand h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+.brand h1 span { background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.brand p { font-size: 0.8rem; color: var(--text-dim); margin-top: -2px; }
+
+.topbar-stats { display: flex; gap: 2rem; }
+.top-stat { text-align: right; }
+.top-stat .val { font-size: 1.3rem; font-weight: 700; color: var(--text); }
+.top-stat .lbl { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
+
+/* ========== CONTROLS ========== */
+.controls {
+    display: flex; gap: 1rem; flex-wrap: wrap; align-items: end;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem 1.2rem; margin-bottom: 1.5rem;
+}
+.ctrl { display: flex; flex-direction: column; gap: 0.3rem; }
+.ctrl label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+.ctrl select, .ctrl input[type="range"] {
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 0.45rem 0.7rem; font-size: 0.82rem; font-family: inherit;
+    transition: all 0.2s; cursor: pointer;
+}
+.ctrl select:hover, .ctrl select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-glow); outline: none; }
+.ctrl input[type="range"] { -webkit-appearance: none; width: 100px; height: 4px; padding: 0; border-radius: 2px; background: var(--border); }
+.ctrl input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--blue); cursor: pointer; box-shadow: 0 0 8px var(--blue-glow); }
+.yr-range { display: flex; align-items: center; gap: 0.4rem; }
+.yr-val { font-size: 0.82rem; color: var(--blue); font-weight: 700; min-width: 42px; text-align: center; }
+.yr-sep { color: var(--text-muted); }
+
+.btn {
+    padding: 0.5rem 1rem; border: none; border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 0.78rem; font-weight: 600; font-family: inherit;
+    transition: all 0.2s; letter-spacing: 0.01em;
+}
+.btn:active { transform: scale(0.97); }
+.btn-glow { background: linear-gradient(135deg, var(--blue), var(--purple)); color: white; }
+.btn-glow:hover { box-shadow: 0 4px 20px var(--blue-glow); transform: translateY(-1px); }
+.btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--blue); color: var(--blue); }
+.btn-ghost.active { background: var(--blue-glow); border-color: var(--blue); color: var(--blue); }
+.btn-red { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+.btn-red:hover { background: rgba(239,68,68,0.2); }
+
+/* ========== KPI SECTION ========== */
+.kpi-section { margin-bottom: 2rem; }
+.kpi-section .sec-head { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+.kpi-section .sec-head .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 10px var(--blue-glow); }
+.kpi-section .sec-head h2 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.8rem; }
+.kpi {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.1rem 1.2rem;
+    cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    position: relative; overflow: hidden;
+}
+.kpi::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--blue-glow), transparent);
+    opacity: 0; transition: opacity 0.3s;
+}
+.kpi:hover { transform: translateY(-3px); border-color: var(--border-hover); }
+.kpi:hover::before { opacity: 1; }
+.kpi.on { border-color: var(--blue); background: var(--bg-card); box-shadow: 0 0 30px var(--blue-glow); }
+.kpi.on::before { opacity: 1; }
+.kpi .kpi-cat { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 0.4rem; position: relative; z-index: 1; }
+.kpi .kpi-name { font-size: 0.72rem; color: var(--text-dim); line-height: 1.4; margin-bottom: 0.6rem; min-height: 2.4em; position: relative; z-index: 1; }
+.kpi .kpi-val { font-size: 1.8rem; font-weight: 800; position: relative; z-index: 1; }
+.kpi .kpi-meta { font-size: 0.72rem; margin-top: 0.4rem; display: flex; align-items: center; gap: 0.4rem; position: relative; z-index: 1; }
+.kpi .kpi-meta .up { color: var(--green); }
+.kpi .kpi-meta .down { color: var(--red); }
+.kpi .kpi-meta .yr { color: var(--text-muted); }
+
+/* ========== CHARTS ========== */
+.charts-row { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+.card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.3rem; transition: border-color 0.3s;
+}
+.card:hover { border-color: var(--border-hover); }
+.card .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.card .card-head h3 { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); }
+.chart-box { position: relative; height: 320px; }
+
+/* ========== INDICATOR GRID ========== */
+.ind-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 0.8rem; margin-bottom: 2rem; }
+.ind-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem; cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.ind-card:hover { transform: translateY(-2px); border-color: var(--border-hover); }
+.ind-card.on { border-color: var(--blue); box-shadow: 0 0 20px var(--blue-glow); }
+.ind-top { display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem; }
+.ind-name { font-size: 0.72rem; color: var(--text-dim); line-height: 1.4; flex: 1; margin-right: 0.5rem; }
+.ind-badge { font-size: 0.58rem; padding: 0.15rem 0.5rem; border-radius: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+.ind-val { font-size: 1.4rem; font-weight: 800; color: var(--blue); margin-bottom: 0.2rem; }
+.ind-label { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+.ind-chart { height: 80px; }
+
+/* ========== TABLE ========== */
+.table-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.table-head { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.3rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 0.5rem; }
+.table-head h3 { font-size: 0.85rem; font-weight: 600; color: var(--text-dim); }
+.search { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.45rem 0.8rem; font-size: 0.82rem; font-family: inherit; width: 260px; transition: all 0.2s; }
+.search:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-glow); }
+.table-wrap { max-height: 380px; overflow: auto; }
+.table-wrap table { width: 100%; border-collapse: collapse; }
+.table-wrap th { position: sticky; top: 0; background: var(--bg-elevated); padding: 0.65rem 1rem; text-align: left; font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; font-weight: 600; cursor: pointer; user-select: none; border-bottom: 1px solid var(--border); }
+.table-wrap th:hover { color: var(--blue); }
+.table-wrap td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.8rem; transition: background 0.15s; }
+.table-wrap tr:hover td { background: var(--bg-card-hover); }
+.table-wrap .tv { font-weight: 600; color: var(--blue); }
+.rc { font-size: 0.7rem; color: var(--text-muted); }
+
+/* ========== BADGES ========== */
+.b-fertility { background: rgba(139,92,246,0.15); color: var(--purple); }
+.b-mortality { background: rgba(239,68,68,0.15); color: var(--red); }
+.b-reproductive { background: rgba(236,72,153,0.15); color: var(--pink); }
+.b-child { background: rgba(245,158,11,0.15); color: var(--amber); }
+.b-marriage { background: rgba(244,114,182,0.15); color: #f472b6; }
+.b-sanitation { background: rgba(16,185,129,0.15); color: var(--green); }
+.b-gender { background: rgba(168,85,247,0.15); color: #a855f7; }
+.b-technology { background: rgba(59,130,246,0.15); color: var(--blue); }
+.b-other { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-up { animation: fadeUp 0.5s ease-out both; }
+.fade-up:nth-child(2) { animation-delay: 0.05s; }
+.fade-up:nth-child(3) { animation-delay: 0.1s; }
+.fade-up:nth-child(4) { animation-delay: 0.15s; }
+.fade-up:nth-child(5) { animation-delay: 0.2s; }
+.fade-up:nth-child(6) { animation-delay: 0.25s; }
+.fade-up:nth-child(7) { animation-delay: 0.3s; }
+.fade-up:nth-child(8) { animation-delay: 0.35s; }
+
+@media (max-width: 1024px) { .charts-row { grid-template-columns: 1fr; } }
+@media (max-width: 768px) {
+    .app { padding: 1rem; }
+    .kpi-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .ind-grid { grid-template-columns: 1fr; }
+    .topbar { flex-direction: column; align-items: start; }
+    .topbar-stats { align-self: flex-start; }
+    .search { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- Top Bar -->
+<div class="topbar fade-up">
+    <div class="brand">
+        <div class="brand-icon">&#x1F1EC;&#x1F1ED;</div>
+        <div>
+            <h1>Ghana <span>SDG Dashboard</span></h1>
+            <p>DHS & MIS Surveys &middot; 1988–2022</p>
+        </div>
+    </div>
+    <div class="topbar-stats">
+        <div class="top-stat"><div class="val" id="sYears">-</div><div class="lbl">Years</div></div>
+        <div class="top-stat"><div class="val" id="sInds">-</div><div class="lbl">Indicators</div></div>
+        <div class="top-stat"><div class="val" id="sRows">-</div><div class="lbl">Records</div></div>
+    </div>
+</div>
+
+<!-- Controls -->
+<div class="controls fade-up">
+    <div class="ctrl"><label>Category</label><select id="cat" onchange="refresh()"><option value="all">All</option></select></div>
+    <div class="ctrl"><label>Chart</label><select id="ctype" onchange="drawCharts()"><option value="line">Line</option><option value="bar">Bar</option><option value="radar">Radar</option></select></div>
+    <div class="ctrl"><label>Theme</label><select id="theme" onchange="drawCharts()">
+        <option value="default">Blue-Purple</option><option value="neon">Neon</option><option value="warm">Warm</option><option value="cool">Ocean</option><option value="earth">Earth</option>
+    </select></div>
+    <div class="ctrl"><label>Year Range</label>
+        <div class="yr-range">
+            <input type="range" id="ys" min="1988" max="2022" value="1988" oninput="syncYr()">
+            <span class="yr-val" id="ysV">1988</span><span class="yr-sep">–</span>
+            <span class="yr-val" id="yeV">2022</span>
+            <input type="range" id="ye" min="1988" max="2022" value="2022" oninput="syncYr()">
+        </div>
+    </div>
+    <div class="ctrl"><label>Limit</label><select id="lim" onchange="refresh()"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="99">All</option></select></div>
+    <button class="btn btn-glow" onclick="selAll()">&#x2714; Select All</button>
+    <button class="btn btn-ghost" id="btnShow" onclick="showAll()">Show Selected</button>
+    <button class="btn btn-red" onclick="clrAll()">&#x2716; Reset</button>
+</div>
+
+<!-- KPIs -->
+<div class="kpi-section fade-up">
+    <div class="sec-head"><div class="dot"></div><h2>Key Metrics</h2></div>
+    <div class="kpi-grid" id="kpiGrid"></div>
+</div>
+
+<!-- Charts Row -->
+<div class="charts-row fade-up">
+    <div class="card">
+        <div class="card-head"><h3>Trends Over Time</h3></div>
+        <div class="chart-box"><canvas id="trendC"></canvas></div>
+    </div>
+    <div class="card">
+        <div class="card-head"><h3>Year Comparison</h3></div>
+        <div class="chart-box"><canvas id="cmpC"></canvas></div>
+    </div>
+</div>
+
+<!-- Indicator Cards -->
+<div class="fade-up" style="margin-bottom:0.8rem;display:flex;align-items:center;gap:0.6rem;">
+    <div class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--purple);box-shadow:0 0 10px rgba(139,92,246,0.3);"></div>
+    <h2 style="font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);">Indicator Explorer</h2>
+    <span style="font-size:0.7rem;color:var(--text-muted);">click cards to toggle</span>
+</div>
+<div class="ind-grid" id="indGrid"></div>
+
+<!-- Table -->
+<div class="fade-up">
+    <div class="table-card">
+        <div class="table-head">
+            <h3>Data Explorer</h3>
+            <input type="text" class="search" id="q" placeholder="Search indicators or categories..." oninput="filtTbl()">
+            <span class="rc" id="rc"></span>
+        </div>
+        <div class="table-wrap" id="tbl"></div>
+    </div>
+</div>
+
+</div>
+
+<script>
+const D = [
+  {
+    "year": 1988,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 2.0
+  },
+  {
+    "year": 1988,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 125.0
+  },
+  {
+    "year": 1988,
+    "indicator": "Neonatal mortality rate",
+    "value": 43.0
+  },
+  {
+    "year": 1988,
+    "indicator": "Neonatal mortality rate",
+    "value": 47.0
+  },
+  {
+    "year": 1988,
+    "indicator": "Under-five mortality rate",
+    "value": 155.0
+  },
+  {
+    "year": 1988,
+    "indicator": "Under-five mortality rate",
+    "value": 154.0
+  },
+  {
+    "year": 1988,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 40.9
+  },
+  {
+    "year": 1988,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 40.1
+  },
+  {
+    "year": 1988,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 40.9
+  },
+  {
+    "year": 1988,
+    "indicator": "DPT 3 vaccination received",
+    "value": 24.3
+  },
+  {
+    "year": 1993,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 1.0
+  },
+  {
+    "year": 1993,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 116.0
+  },
+  {
+    "year": 1993,
+    "indicator": "Demand for family planning satisfied by modern methods",
+    "value": 17.7
+  },
+  {
+    "year": 1993,
+    "indicator": "Demand for family planning satisfied by modern methods (all women)",
+    "value": 20.2
+  },
+  {
+    "year": 1993,
+    "indicator": "Demand for family planning satisfied by modern methods (sexually active unmarried women)",
+    "value": 48.0
+  },
+  {
+    "year": 1993,
+    "indicator": "Neonatal mortality rate",
+    "value": 41.0
+  },
+  {
+    "year": 1993,
+    "indicator": "Neonatal mortality rate",
+    "value": 46.0
+  },
+  {
+    "year": 1993,
+    "indicator": "Under-five mortality rate",
+    "value": 119.0
+  },
+  {
+    "year": 1993,
+    "indicator": "Under-five mortality rate",
+    "value": 133.0
+  },
+  {
+    "year": 1993,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 43.7
+  },
+  {
+    "year": 1993,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 43.4
+  },
+  {
+    "year": 1993,
+    "indicator": "DPT 3 vaccination received",
+    "value": 62.4
+  },
+  {
+    "year": 1993,
+    "indicator": "Children stunted",
+    "value": 32.5
+  },
+  {
+    "year": 1993,
+    "indicator": "Children wasted",
+    "value": 13.8
+  },
+  {
+    "year": 1993,
+    "indicator": "Children overweight",
+    "value": 2.5
+  },
+  {
+    "year": 1993,
+    "indicator": "Population using open defecation",
+    "value": 26.5
+  },
+  {
+    "year": 1993,
+    "indicator": "Population with electricity",
+    "value": 27.8
+  },
+  {
+    "year": 1998,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 0.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 88.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Demand for family planning satisfied by modern methods",
+    "value": 23.5
+  },
+  {
+    "year": 1998,
+    "indicator": "Demand for family planning satisfied by modern methods (all women)",
+    "value": 24.5
+  },
+  {
+    "year": 1998,
+    "indicator": "Demand for family planning satisfied by modern methods (sexually active unmarried women)",
+    "value": 25.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Neonatal mortality rate",
+    "value": 30.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Neonatal mortality rate",
+    "value": 32.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Under-five mortality rate",
+    "value": 108.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Under-five mortality rate",
+    "value": 110.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 44.8
+  },
+  {
+    "year": 1998,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 44.3
+  },
+  {
+    "year": 1998,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 43.8
+  },
+  {
+    "year": 1998,
+    "indicator": "DPT 3 vaccination received",
+    "value": 72.2
+  },
+  {
+    "year": 1998,
+    "indicator": "Children stunted",
+    "value": 30.6
+  },
+  {
+    "year": 1998,
+    "indicator": "Children wasted",
+    "value": 10.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Children overweight",
+    "value": 2.4
+  },
+  {
+    "year": 1998,
+    "indicator": "Population using open defecation",
+    "value": 24.0
+  },
+  {
+    "year": 1998,
+    "indicator": "Population with electricity",
+    "value": 39.3
+  },
+  {
+    "year": 2003,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 0.0
+  },
+  {
+    "year": 2003,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 74.0
+  },
+  {
+    "year": 2003,
+    "indicator": "Demand for family planning satisfied by modern methods",
+    "value": 31.3
+  },
+  {
+    "year": 2003,
+    "indicator": "Demand for family planning satisfied by modern methods (all women)",
+    "value": 33.8
+  },
+  {
+    "year": 2003,
+    "indicator": "Demand for family planning satisfied by modern methods (sexually active unmarried women)",
+    "value": 36.6
+  },
+  {
+    "year": 2003,
+    "indicator": "Neonatal mortality rate",
+    "value": 43.0
+  },
+  {
+    "year": 2003,
+    "indicator": "Neonatal mortality rate",
+    "value": 41.0
+  },
+  {
+    "year": 2003,
+    "indicator": "Under-five mortality rate",
+    "value": 111.0
+  },
+  {
+    "year": 2003,
+    "indicator": "Under-five mortality rate",
+    "value": 110.0
+  },
+  {
+    "year": 2003,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 46.4
+  },
+  {
+    "year": 2003,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 47.1
+  },
+  {
+    "year": 2003,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 45.8
+  },
+  {
+    "year": 2003,
+    "indicator": "DPT 3 vaccination received",
+    "value": 79.5
+  },
+  {
+    "year": 2003,
+    "indicator": "Appropriate disposal of stools",
+    "value": 50.1
+  },
+  {
+    "year": 2003,
+    "indicator": "Appropriate disposal of stools",
+    "value": 55.1
+  },
+  {
+    "year": 2003,
+    "indicator": "Appropriate disposal of stools",
+    "value": 45.0
+  },
+  {
+    "year": 2003,
+    "indicator": "Women with any anemia",
+    "value": 44.6
+  },
+  {
+    "year": 2003,
+    "indicator": "Women circumcised (FGC)",
+    "value": 5.4
+  },
+  {
+    "year": 2003,
+    "indicator": "Population using open defecation",
+    "value": 24.6
+  },
+  {
+    "year": 2003,
+    "indicator": "Population with basic sanitation service",
+    "value": 7.7
+  },
+  {
+    "year": 2003,
+    "indicator": "Population with electricity",
+    "value": 44.2
+  },
+  {
+    "year": 2003,
+    "indicator": "Population using clean fuel for cooking ",
+    "value": 7.3
+  },
+  {
+    "year": 2008,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 0.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 66.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Demand for family planning satisfied by modern methods",
+    "value": 28.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Demand for family planning satisfied by modern methods (all women)",
+    "value": 31.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Demand for family planning satisfied by modern methods (sexually active unmarried women)",
+    "value": 37.4
+  },
+  {
+    "year": 2008,
+    "indicator": "Neonatal mortality rate",
+    "value": 30.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Neonatal mortality rate",
+    "value": 32.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Under-five mortality rate",
+    "value": 80.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Under-five mortality rate",
+    "value": 85.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 59.5
+  },
+  {
+    "year": 2008,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 58.7
+  },
+  {
+    "year": 2008,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 60.1
+  },
+  {
+    "year": 2008,
+    "indicator": "DPT 3 vaccination received",
+    "value": 88.8
+  },
+  {
+    "year": 2008,
+    "indicator": "Appropriate disposal of stools",
+    "value": 38.8
+  },
+  {
+    "year": 2008,
+    "indicator": "Appropriate disposal of stools",
+    "value": 42.4
+  },
+  {
+    "year": 2008,
+    "indicator": "Appropriate disposal of stools",
+    "value": 36.8
+  },
+  {
+    "year": 2008,
+    "indicator": "Children stunted",
+    "value": 28.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Children wasted",
+    "value": 8.5
+  },
+  {
+    "year": 2008,
+    "indicator": "Children overweight",
+    "value": 5.3
+  },
+  {
+    "year": 2008,
+    "indicator": "Women with any anemia",
+    "value": 58.7
+  },
+  {
+    "year": 2008,
+    "indicator": "Children registered",
+    "value": 71.2
+  },
+  {
+    "year": 2008,
+    "indicator": "Population using open defecation",
+    "value": 23.1
+  },
+  {
+    "year": 2008,
+    "indicator": "Population with basic sanitation service",
+    "value": 12.4
+  },
+  {
+    "year": 2008,
+    "indicator": "Population with electricity",
+    "value": 56.0
+  },
+  {
+    "year": 2008,
+    "indicator": "Population using clean fuel for cooking ",
+    "value": 11.3
+  },
+  {
+    "year": 2014,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 1.0
+  },
+  {
+    "year": 2014,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 76.0
+  },
+  {
+    "year": 2014,
+    "indicator": "Demand for family planning satisfied by modern methods",
+    "value": 39.2
+  },
+  {
+    "year": 2014,
+    "indicator": "Demand for family planning satisfied by modern methods (all women)",
+    "value": 41.2
+  },
+  {
+    "year": 2014,
+    "indicator": "Demand for family planning satisfied by modern methods (sexually active unmarried women)",
+    "value": 36.6
+  },
+  {
+    "year": 2014,
+    "indicator": "Neonatal mortality rate",
+    "value": 29.0
+  },
+  {
+    "year": 2014,
+    "indicator": "Neonatal mortality rate",
+    "value": 31.0
+  },
+  {
+    "year": 2014,
+    "indicator": "Under-five mortality rate",
+    "value": 60.0
+  },
+  {
+    "year": 2014,
+    "indicator": "Under-five mortality rate",
+    "value": 70.0
+  },
+  {
+    "year": 2014,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 75.8
+  },
+  {
+    "year": 2014,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 73.7
+  },
+  {
+    "year": 2014,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 75.5
+  },
+  {
+    "year": 2014,
+    "indicator": "DPT 3 vaccination received",
+    "value": 88.5
+  },
+  {
+    "year": 2014,
+    "indicator": "Appropriate disposal of stools",
+    "value": 29.4
+  },
+  {
+    "year": 2014,
+    "indicator": "Appropriate disposal of stools",
+    "value": 35.5
+  },
+  {
+    "year": 2014,
+    "indicator": "Appropriate disposal of stools",
+    "value": 24.5
+  },
+  {
+    "year": 2014,
+    "indicator": "Children stunted",
+    "value": 18.8
+  },
+  {
+    "year": 2014,
+    "indicator": "Children wasted",
+    "value": 4.7
+  },
+  {
+    "year": 2014,
+    "indicator": "Children overweight",
+    "value": 2.6
+  },
+  {
+    "year": 2014,
+    "indicator": "Women with any anemia",
+    "value": 42.4
+  },
+  {
+    "year": 2014,
+    "indicator": "Children registered",
+    "value": 70.5
+  },
+  {
+    "year": 2014,
+    "indicator": "Population using open defecation",
+    "value": 21.0
+  },
+  {
+    "year": 2014,
+    "indicator": "Population with basic sanitation service",
+    "value": 15.0
+  },
+  {
+    "year": 2014,
+    "indicator": "Population with a basic handwashing facility, with soap and water available",
+    "value": 22.1
+  },
+  {
+    "year": 2014,
+    "indicator": "Population with electricity",
+    "value": 74.6
+  },
+  {
+    "year": 2014,
+    "indicator": "Population using clean fuel for cooking ",
+    "value": 20.7
+  },
+  {
+    "year": 2016,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 3.0
+  },
+  {
+    "year": 2016,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 76.0
+  },
+  {
+    "year": 2016,
+    "indicator": "Population using open defecation",
+    "value": 18.7
+  },
+  {
+    "year": 2016,
+    "indicator": "Population with basic sanitation service",
+    "value": 16.7
+  },
+  {
+    "year": 2016,
+    "indicator": "Population with electricity",
+    "value": 76.8
+  },
+  {
+    "year": 2016,
+    "indicator": "Population using clean fuel for cooking ",
+    "value": 20.2
+  },
+  {
+    "year": 2019,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 1.0
+  },
+  {
+    "year": 2019,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 78.0
+  },
+  {
+    "year": 2019,
+    "indicator": "Population using open defecation",
+    "value": 18.5
+  },
+  {
+    "year": 2019,
+    "indicator": "Population with basic sanitation service",
+    "value": 20.0
+  },
+  {
+    "year": 2019,
+    "indicator": "Population with electricity",
+    "value": 81.3
+  },
+  {
+    "year": 2019,
+    "indicator": "Population using clean fuel for cooking ",
+    "value": 21.2
+  },
+  {
+    "year": 2022,
+    "indicator": "Age specific fertility rate: 10-14",
+    "value": 2.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Age specific fertility rate: 15-19",
+    "value": 63.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Demand for family planning satisfied by modern methods",
+    "value": 46.5
+  },
+  {
+    "year": 2022,
+    "indicator": "Demand for family planning satisfied by modern methods (all women)",
+    "value": 49.5
+  },
+  {
+    "year": 2022,
+    "indicator": "Demand for family planning satisfied by modern methods (sexually active unmarried women)",
+    "value": 52.2
+  },
+  {
+    "year": 2022,
+    "indicator": "Neonatal mortality rate",
+    "value": 17.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Neonatal mortality rate",
+    "value": 19.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Under-five mortality rate",
+    "value": 40.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Under-five mortality rate",
+    "value": 43.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 86.8
+  },
+  {
+    "year": 2022,
+    "indicator": "Assistance during delivery from a skilled provider",
+    "value": 87.6
+  },
+  {
+    "year": 2022,
+    "indicator": "DPT 3 vaccination received",
+    "value": 89.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Pneumococcal 3 vaccination received",
+    "value": 88.2
+  },
+  {
+    "year": 2022,
+    "indicator": "Appropriate disposal of stools",
+    "value": 15.5
+  },
+  {
+    "year": 2022,
+    "indicator": "Children stunted",
+    "value": 17.4
+  },
+  {
+    "year": 2022,
+    "indicator": "Children wasted",
+    "value": 6.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Children overweight",
+    "value": 2.0
+  },
+  {
+    "year": 2022,
+    "indicator": "Women with any anemia",
+    "value": 41.1
+  },
+  {
+    "year": 2022,
+    "indicator": "Own decision making about all three decisions",
+    "value": 51.7
+  },
+  {
+    "year": 2022,
+    "indicator": "Women who own a mobile phone",
+    "value": 79.6
+  },
+  {
+    "year": 2022,
+    "indicator": "Women who use a mobile phone for financial transactions",
+    "value": 82.6
+  },
+  {
+    "year": 2022,
+    "indicator": "Men who own a mobile phone",
+    "value": 87.9
+  },
+  {
+    "year": 2022,
+    "indicator": "Men who use a mobile phone for financial transactions",
+    "value": 85.9
+  },
+  {
+    "year": 2022,
+    "indicator": "Children registered",
+    "value": 74.5
+  },
+  {
+    "year": 2022,
+    "indicator": "Population using open defecation",
+    "value": 24.6
+  },
+  {
+    "year": 2022,
+    "indicator": "Population with basic sanitation service",
+    "value": 24.3
+  },
+  {
+    "year": 2022,
+    "indicator": "Population with a basic handwashing facility, with soap and water available",
+    "value": 43.5
+  },
+  {
+    "year": 2022,
+    "indicator": "Population with electricity",
+    "value": 82.9
+  },
+  {
+    "year": 2022,
+    "indicator": "Population using clean fuel for cooking ",
+    "value": 22.5
+  }
+];
+
+const CATS = {
+    'Fertility':['fertility rate'],'Mortality':['mortality rate'],'Reproductive':['delivery','family planning'],
+    'Child Health':['vaccination','stunted','wasted','overweight','stools'],'Marriage':['married by'],
+    'Sanitation':['electricity','sanitation','defecation','cooking','handwashing'],
+    'Gender':['anemia','violence','decision making','circumcised','tobacco'],
+    'Technology':['internet','mobile phone']
+};
+
+const THEMES = {
+    default:['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#84cc16','#a855f7','#0ea5e9'],
+    neon:['#00ff88','#00d4ff','#ff00ff','#ff6600','#ffff00','#ff3366','#33ffcc','#cc66ff','#66ff33','#ff9900'],
+    warm:['#ff6b6b','#ffa502','#ff6348','#ff4757','#eccc68','#ff7f50','#f368e0','#ff9ff3','#feca57','#ff6b81'],
+    cool:['#00d2d3','#54a0ff','#5f27cd','#48dbfb','#0abde3','#1dd1a1','#2e86de','#3b82f6','#00cec9','#6c5ce7'],
+    earth:['#2d6a4f','#40916c','#52b788','#74c69d','#95d5b2','#b7e4c7','#d8f3dc','#1b4332','#081c15','#588157']
+};
+
+let sel = new Set(), sCol = -1, sAsc = true, tChart, cChart, miniC = {};
+
+function catOf(ind) { const l=ind.toLowerCase(); for(let[c,k]of Object.entries(CATS)) if(k.some(x=>l.includes(x)))return c; return 'Other'; }
+function bClass(c){return 'b-'+c.toLowerCase().replace(/[^a-z]/g,'').slice(0,12);}
+function fData(c,s,e){return D.filter(d=>(c==='all'||catOf(d.indicator)===c)&&d.year>=s&&d.year<=e);}
+function uInds(d){return[...new Set(d.map(x=>x.indicator))];}
+function agg(ind,d){const g={};d.filter(x=>x.indicator===ind).forEach(x=>{if(!g[x.year])g[x.year]={s:0,c:0};g[x.year].s+=x.value;g[x.year].c++;});return Object.entries(g).map(([y,v])=>({year:+y,value:v.s/v.c})).sort((a,b)=>a.year-b.year);}
+
+function init(){
+    const s=document.getElementById('cat');Object.keys(CATS).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;s.appendChild(o);});
+    const yrs=[...new Set(D.map(d=>d.year))];
+    document.getElementById('sYears').textContent=yrs.length;
+    document.getElementById('sInds').textContent=uInds(D).length;
+    document.getElementById('sRows').textContent=D.length;
+}
+
+function renderKPIs(data){
+    const g=document.getElementById('kpiGrid');g.innerHTML='';
+    const keys=['Under-five mortality rate','Assistance during delivery from a skilled provider','DPT 3 vaccination received','Population with electricity','Demand for family planning satisfied by modern methods','Children stunted','Population using open defecation','Women who own a mobile phone'];
+    const yrs=[...new Set(data.map(d=>d.year))].sort((a,b)=>a-b);const ly=yrs[yrs.length-1],py=yrs[yrs.length-2];
+    keys.forEach(ind=>{
+        const c=agg(ind,data.filter(d=>d.year===ly));if(!c.length)return;const cv=c[0].value;
+        const p=agg(ind,data.filter(d=>d.year===py));const pv=p.length?p[0].value:null;
+        const ch=pv?((cv-pv)/pv*100).toFixed(1):null;
+        const good=ch!==null&&(ind.toLowerCase().match(/mortality|defecation|stunted|wasted/)?ch<0:ch>0);
+        const d=document.createElement('div');d.className='kpi fade-up'+(sel.has(ind)?' on':'');d.onclick=()=>tog(ind);
+        d.innerHTML=`<div class="kpi-cat" style="color:var(--blue)">&#x1F4CA; ${catOf(ind)}</div><div class="kpi-name">${ind}</div><div class="kpi-val" style="color:${good?'var(--green)':'var(--red)'}">${cv.toFixed(1)}</div><div class="kpi-meta"><span class="${good?'up':'down'}">${ch!==null?(ch>0?'&#x25B2;':'&#x25BC;')+' '+Math.abs(ch)+'%':'-'}</span><span class="yr">vs ${py}</span></div>`;
+        g.appendChild(d);
+    });
+}
+
+function renderTrend(data,type){
+    const ctx=document.getElementById('trendC').getContext('2d');if(tChart)tChart.destroy();
+    let inds=sel.size?[...sel].filter(i=>uInds(data).includes(i)):uInds(data).slice(0,+document.getElementById('lim').value);
+    const cols=THEMES[document.getElementById('theme').value]||THEMES.default;
+    const yrs=[...new Set(data.map(d=>d.year))].sort();
+    tChart=new Chart(ctx,{type:type==='radar'?'radar':(type==='bar'?'bar':'line'),
+        data:{labels:type==='radar'?inds.map(i=>i.slice(0,20)):yrs,datasets:inds.map((ind,i)=>{const a=agg(ind,data);return{label:ind,data:type==='radar'?[a.length?a[a.length-1].value:0]:a.map(v=>v.value),borderColor:cols[i%cols.length],backgroundColor:cols[i%cols.length]+'50',tension:0.4,fill:type==='bar',pointRadius:3,pointHoverRadius:7,borderWidth:2,};})},
+        options:{responsive:true,maintainAspectRatio:false,animation:{duration:800,easing:'easeOutQuart'},interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{color:'#94a3b8',boxWidth:10,font:{size:10},padding:10}},tooltip:{backgroundColor:'#0c1120',titleColor:'#3b82f6',bodyColor:'#f8fafc',borderColor:'#1e293b',borderWidth:1,cornerRadius:10,padding:10}},scales:type==='radar'?{r:{ticks:{color:'#475569',backdropColor:'transparent'},grid:{color:'#1e293b'},pointLabels:{color:'#94a3b8',font:{size:9}}}}:{x:{ticks:{color:'#475569'},grid:{color:'#111827'}},y:{ticks:{color:'#475569'},grid:{color:'#111827'}}}}}
+    );
+}
+
+function renderCmp(data){
+    const ctx=document.getElementById('cmpC').getContext('2d');if(cChart)cChart.destroy();
+    const yrs=[...new Set(data.map(d=>d.year))].sort((a,b)=>b-a).slice(0,5);
+    let inds=sel.size?[...sel].filter(i=>uInds(data).includes(i)):uInds(data).slice(0,8);
+    const cols=THEMES[document.getElementById('theme').value]||THEMES.default;
+    cChart=new Chart(ctx,{type:'bar',data:{labels:inds.map(i=>i.slice(0,22)),datasets:yrs.map((y,i)=>({label:y,data:inds.map(ind=>{const a=agg(ind,data.filter(d=>d.year===y));return a.length?a[0].value:0;}),backgroundColor:cols[i%cols.length]+'60',borderColor:cols[i%cols.length],borderWidth:1.5,borderRadius:4,}))},
+        options:{responsive:true,maintainAspectRatio:false,animation:{duration:800,easing:'easeOutQuart'},plugins:{legend:{position:'top',labels:{color:'#94a3b8',padding:10,font:{size:10}}},tooltip:{backgroundColor:'#0c1120',titleColor:'#3b82f6',bodyColor:'#f8fafc',borderColor:'#1e293b',borderWidth:1,cornerRadius:10,padding:10}},scales:{x:{ticks:{color:'#475569',maxRotation:45},grid:{color:'#111827'}},y:{ticks:{color:'#475569'},grid:{color:'#111827'}}}}});
+}
+
+function renderMinis(data){
+    const g=document.getElementById('indGrid');g.innerHTML='';miniC={};
+    const inds=uInds(data).slice(0,+document.getElementById('lim').value);
+    const cols=THEMES[document.getElementById('theme').value]||THEMES.default;
+    inds.forEach((ind,i)=>{
+        const a=agg(ind,data);const latest=a.length?a[a.length-1]:null;const cat=catOf(ind);
+        const card=document.createElement('div');card.className='ind-card fade-up'+(sel.has(ind)?' on':'');card.onclick=()=>tog(ind);
+        card.innerHTML=`<div class="ind-top"><div class="ind-name">${ind}</div><span class="ind-badge ${bClass(cat)}">${cat}</span></div><div class="ind-val">${latest?latest.value.toFixed(1):'-'}</div><div class="ind-label">Latest: ${latest?latest.year:'-'} &middot; First: ${a.length?a[0].year:'-'}</div><div class="ind-chart"><canvas id="m${i}"></canvas></div>`;
+        g.appendChild(card);
+        if(a.length>1){miniC[ind]=new Chart(document.getElementById('m'+i).getContext('2d'),{type:'line',data:{labels:a.map(v=>v.year),datasets:[{data:a.map(v=>v.value),borderColor:cols[i%cols.length],backgroundColor:cols[i%cols.length]+'30',tension:0.4,fill:true,pointRadius:2,borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0c1120',bodyColor:'#f8fafc',cornerRadius:8}},scales:{x:{display:false},y:{display:false}}}});}
+    });
+}
+
+function renderTbl(data){
+    const rows=[];uInds(data).forEach(ind=>{const cat=catOf(ind);agg(ind,data).forEach(v=>rows.push({ind,cat,year:v.year,value:v.value.toFixed(1)}));});
+    window.td=rows;window.fd=rows;updTbl();
+}
+function updTbl(){
+    const d=window.fd||[];let h='<table><thead><tr><th onclick="sortT(0)">Indicator</th><th onclick="sortT(1)">Category</th><th onclick="sortT(2)">Year</th><th onclick="sortT(3)">Value</th></tr></thead><tbody>';
+    d.forEach(r=>{h+=`<tr><td>${r.ind}</td><td><span class="ind-badge ${bClass(r.cat)}">${r.cat}</span></td><td>${r.year}</td><td class="tv">${r.value}</td></tr>`;});
+    h+='</tbody></table>';document.getElementById('tbl').innerHTML=h;document.getElementById('rc').textContent=d.length+' rows';
+}
+function sortT(c){if(sCol===c)sAsc=!sAsc;else{sCol=c;sAsc=true;}const k=['ind','cat','year','value'];window.fd.sort((a,b)=>{const va=a[k[c]],vb=b[k[c]];return typeof va==='string'?sAsc?va.localeCompare(vb):vb.localeCompare(va):sAsc?va-vb:vb-va;});updTbl();}
+function filtTbl(){const q=document.getElementById('q').value.toLowerCase();window.fd=window.td.filter(r=>r.ind.toLowerCase().includes(q)||r.cat.toLowerCase().includes(q));updTbl();}
+
+function tog(ind){if(sel.has(ind))sel.delete(ind);else sel.add(ind);refresh();}
+function selAll(){const d=getF();uInds(d).forEach(i=>sel.add(i));refresh();}
+function showAll(){if(sel.size===0){clrAll();return;}sel.clear();refresh();}
+function clrAll(){sel.clear();document.getElementById('btnShow').classList.remove('active');refresh();}
+function getF(){return fData(document.getElementById('cat').value,+document.getElementById('ys').value,+document.getElementById('ye').value);}
+function syncYr(){let s=+document.getElementById('ys').value,e=+document.getElementById('ye').value;if(s>e){document.getElementById('ye').value=s;e=s;}document.getElementById('ysV').textContent=s;document.getElementById('yeV').textContent=e;refresh();}
+function refresh(){const d=getF();renderKPIs(d);drawCharts(d);renderMinis(d);renderTbl(d);}
+function drawCharts(data){const type=document.getElementById('ctype').value;const d=data||getF();renderTrend(d,type);renderCmp(d);}
+
+Chart.defaults.color='#475569';Chart.defaults.borderColor='#111827';Chart.defaults.font.family='Inter';
+init();refresh();
+</script>
+</body>
+</html>

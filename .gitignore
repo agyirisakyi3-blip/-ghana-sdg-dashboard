@@ -1,0 +1,10 @@
+# Generated files
+__pycache__/
+*.pyc
+
+# Legacy / intermediate files
+dashboard_data.json
+data.json
+index.html
+dashboard.py
+export_data.py
