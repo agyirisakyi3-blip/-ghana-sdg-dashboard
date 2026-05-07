@@ -15,12 +15,15 @@ This dashboard transforms survey data from the Demographic and Health Surveys (D
 ### Key Metrics
 - **8 KPI cards** highlighting core indicators with year-over-year percentage changes
 - Color-coded values: **green** for positive trends, **red** for negative
+- Confidence intervals displayed on each KPI card
 - Click any KPI card to select/deselect it across all charts
 
 ### Interactive Charts
 - **Trends Over Time** – Line, bar, or radar chart showing indicator trajectories
 - **Year Comparison** – Grouped bar chart comparing up to 5 survey years side-by-side
 - **Indicator Explorer** – Mini sparkline charts for each indicator with first/latest year labels
+- **Heatmap** – Stacked view of all indicators across survey years
+- **Correlation Scatter** – Pick any two indicators to see how they correlate over time
 
 ### Controls
 - **Category Filter** – Narrow to specific SDG areas (Fertility, Mortality, Reproductive Health, Child Health, Sanitation, etc.)
@@ -28,10 +31,16 @@ This dashboard transforms survey data from the Demographic and Health Surveys (D
 - **Color Themes** – 5 palettes: Blue-Purple, Neon, Warm, Ocean, Earth
 - **Year Range** – Dual sliders to filter the time window
 - **Indicator Limit** – Control how many indicators display at once
+- **Dark/Light Theme** – Toggle between dark and light modes with smooth transitions
+
+### Export
+- **CSV** – Download filtered data as a CSV file
+- **JSON** – Download filtered data as JSON
+- **Chart PNG** – Save trend or comparison charts as images
 
 ### Data Explorer
 - Sortable table with category badges
-- Real-time search filtering by indicator name or category
+- Debounced real-time search filtering by indicator name or category
 - Row count indicator
 
 ## Quick Start
@@ -57,11 +66,8 @@ Dash/
 ├── sdgs_national_gha.csv    # Source data (DHS survey indicators)
 ├── build_dashboard.py        # Python script to generate dashboard.html
 ├── dashboard.html            # Interactive dashboard (open in browser)
-├── dashboard.py              # Legacy Streamlit app (not needed)
-├── export_data.py            # Utility to export CSV to JSON
-├── data.json                 # Intermediate JSON data file
-├── dashboard_data.json       # Legacy JSON data file
-└── index.html                # Legacy static dashboard
+├── preview.png               # Dashboard screenshot
+└── README.md                 # This file
 ```
 
 ## Indicator Categories
@@ -79,9 +85,9 @@ Dash/
 
 ## Data Notes
 
-- Values represent **"Total"** characteristic records (aggregated national figures)
+- Values represent **"Total"** characteristic records with `IsPreferred == 1` (aggregated national figures, preferred records only)
 - When multiple records exist for the same indicator and year, values are **averaged**
-- Some indicators have multiple time-reference labels (e.g., "Five years preceding", "Ten years preceding") – only preferred records are used
+- Confidence intervals (`CILow`, `CIHigh`) are extracted and displayed where available
 - Survey types include **DHS** (Demographic and Health Survey) and **MIS** (Malaria Indicator Survey)
 
 ## Technologies
